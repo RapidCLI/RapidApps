@@ -1,0 +1,43 @@
+load("//bazel/par:def.bzl", "par_binary")
+
+package(default_visibility = ["//moveworks/cse_tools:visibility"])
+
+exports_files(
+    glob([
+        "*.yml",
+    ]),
+)
+
+py_library(
+    name = "__init__",
+    srcs = ["__init__.py"],
+)
+
+py_library(
+    name = "cli_test_configs",
+    srcs = ["cli_test_configs.py"],
+    deps = ["//moveworks/cse_tools/internal/scripts/extensible_cli_framework:config_registrar"],
+)
+
+par_binary(
+    name = "config_tests",
+    srcs = ["config_tests.py"],
+    deps = [
+        ":cli_test_configs",
+        "//moveworks/cse_tools/internal/scripts/extensible_cli_framework:app_loader",
+        "//moveworks/cse_tools/internal/scripts/extensible_cli_framework:config_registrar",
+        "//moveworks/cse_tools/internal/scripts/extensible_cli_framework:extension",
+        "//moveworks/cse_tools/internal/scripts/extensible_cli_framework:utils",
+    ],
+)
+
+par_binary(
+    name = "util_tests",
+    srcs = ["util_tests.py"],
+    deps = [
+        "//moveworks/cse_tools/internal/scripts/extensible_cli_framework:utils",
+        "//moveworks/protos/channel:chat_channels_py_proto",
+        "//moveworks/protos/itsm:itsm_systems_py_proto",
+        "//moveworks/protos/security_factors:authn_system_enums_py_proto",
+    ],
+)

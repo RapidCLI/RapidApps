@@ -1,0 +1,23 @@
+test_extension:
+  input_menu: # "InputMenuConfig_instantiation_test"
+    var:
+      question: "var_question_test"
+    choice_var:
+      question: "choice_question_test"
+      choices:
+        - "yolo"
+        - "brolo"
+  static_var: "static_var_test"
+  nested_obj_in_extension:
+    tables:
+      - name: "test_table_name"
+        methods: # if no method is listed, the default is GET
+        columns:
+        nested_obj_in_list:
+          random_attr: "yolo"
+  searches:
+    - value_name: service_catalogs
+      source_file: configs/bots/{{org_canonical_name}}/vars/data_vars.mwyml
+      variable_path: vars/form_flow_v3/external_sources
+      method: resolve_catalog_whitelist
+      data_loader: load_yaml_without_anchors
