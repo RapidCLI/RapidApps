@@ -1,0 +1,13 @@
+rapid_admin:
+  main_menu:
+    input_menu:
+      what_to_create:
+        question: "What are you wanting to create: "
+        choices:
+          - "cli"
+  cli_menu:
+    input_menu:
+      project_name:
+        question: "What is the project name: "
+      project_destination:
+        question: "Where should the project be created: "

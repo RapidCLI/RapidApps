@@ -13,8 +13,8 @@ import os
 import pathlib
 from typing import Any, Callable, Dict, Set, Union
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.extension import Extension
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import (
+from rapidcli.extension import Extension
+from rapidcli.utils import (
     CLIColors,
     get_repo_root,
 )
@@ -22,7 +22,11 @@ from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import 
 
 class Registration:
     def __init__(
-        self, handle: Union[Callable, Extension], zshrc_alias=False, alt_alias=None, is_cli=False
+        self,
+        handle: Union[Callable, Extension],
+        zshrc_alias=False,
+        alt_alias=None,
+        is_cli=False,
     ):
         self.is_function = inspect.isfunction(handle)
 
@@ -40,7 +44,7 @@ class Registration:
         """Make the extension callable with the arguments that it orginally needs."""
         if not self.extension.is_function:
             raise TypeError(
-                f'The extension named {self.name} is not a function based extension and not callable.'
+                f"The extension named {self.name} is not a function based extension and not callable."
             )
         return self.extension(*args, **kwargs)
 
@@ -53,21 +57,23 @@ class Registration:
         doc = []
 
         if self.extension.args and not self.is_cli:
-            colored_args = CLIColors.build_value_string(f"args: ({', '.join(self.extension.args)})")
+            colored_args = CLIColors.build_value_string(
+                f"args: ({', '.join(self.extension.args)})"
+            )
             doc.append(colored_args)
         else:
-            colored_args = CLIColors.build_value_string(f'args: (ext_name)')
+            colored_args = CLIColors.build_value_string(f"args: (ext_name)")
             doc.append(colored_args)
 
         if not self.is_cli:
             colored_doc_string = CLIColors.build_doc_string(self.extension.doc_string)
             doc.append(colored_doc_string)
-        return '\n'.join(doc)
+        return "\n".join(doc)
 
     def get_registration_doc(self) -> str:
         """Get the docstring of the extension along with the extensions arguments."""
         if self.is_cli:
-            return ''
+            return ""
 
         doc = []
         if self.extension.args:
@@ -75,16 +81,21 @@ class Registration:
             if not self.is_cli:
                 doc.append(f"args: ({', '.join(self.extension.args)})")
 
-        doc.append(self.extension.doc_string if self.extension.doc_string else '')
-        return '\n'.join(doc)
+        doc.append(self.extension.doc_string if self.extension.doc_string else "")
+        return "\n".join(doc)
 
     def _py_to_sh_cli_arguments_string(self):
         """Convert python argument list to positional argument list for bash."""
         if not self.is_cli:
-            return ' '.join([f'${arg_pos+1}' for arg_pos in range(len(self.extension.args))])
+            return " ".join(
+                [f"${arg_pos+1}" for arg_pos in range(len(self.extension.args))]
+            )
         else:
-            return ' '.join(
-                [f'${arg_pos+1}' for arg_pos in range(get_greatest_num_args_in_registrations() + 1)]
+            return " ".join(
+                [
+                    f"${arg_pos+1}"
+                    for arg_pos in range(get_greatest_num_args_in_registrations() + 1)
+                ]
             )
 
     def _py_to_sh_docstring(self):
@@ -92,14 +103,14 @@ class Registration:
         sh_docstring_list.append(f"<<'###'")
 
         if self.is_cli:
-            return ''
+            return ""
 
         if not self.is_cli:
             sh_docstring_list.append(f"# args: {', '.join(self.extension.args)}")
 
-        sh_docstring_list.append(f'{self.extension.doc_string}')
-        sh_docstring_list.append(f'###')
-        return '\n'.join(sh_docstring_list)
+        sh_docstring_list.append(f"{self.extension.doc_string}")
+        sh_docstring_list.append(f"###")
+        return "\n".join(sh_docstring_list)
 
     def _colored_py_to_sh_docstring(self):
         sh_docstring_list = []
@@ -111,31 +122,31 @@ class Registration:
             )
         else:
             sh_docstring_list.append(
-                f'# args: # args: equal to the underlying extension being called'
+                f"# args: # args: equal to the underlying extension being called"
             )
 
         sh_docstring_list.append(CLIColors.build_doc_string(self.extension.doc_string))
-        sh_docstring_list.append(f'###')
-        return '\n'.join(sh_docstring_list)
+        sh_docstring_list.append(f"###")
+        return "\n".join(sh_docstring_list)
 
     def get_alias_strings(self):
         """Convert python functions registered as aliases to bash alias string."""
-        CLI_FROM_ROOT_PATH = 'moveworks/cse_tools/internal/scripts/cse_cli/cse_cli.py'
+        CLI_FROM_ROOT_PATH = "replaceme"
         alias_strings = []
         for alias in self.get_aliases():
-            alias_builder = [f'function {alias}() {{']
+            alias_builder = [f"function {alias}() {{"]
             alias_builder.append(self._py_to_sh_docstring())
             if not self.is_cli:
                 alias_builder.append(
-                    f'\tpython {os.path.join(get_repo_root(), CLI_FROM_ROOT_PATH)} --{self.name} {self._py_to_sh_cli_arguments_string()}'
+                    f"\tpython {os.path.join(get_repo_root(), CLI_FROM_ROOT_PATH)} --{self.name} {self._py_to_sh_cli_arguments_string()}"
                 )
             else:
                 alias_builder.append(
-                    f'\tpython {os.path.join(get_repo_root(), CLI_FROM_ROOT_PATH)} {self._py_to_sh_cli_arguments_string()}'
+                    f"\tpython {os.path.join(get_repo_root(), CLI_FROM_ROOT_PATH)} {self._py_to_sh_cli_arguments_string()}"
                 )
-            alias_builder.append(f'}}')
+            alias_builder.append(f"}}")
 
-            alias_strings.append('\n'.join(alias_builder))
+            alias_strings.append("\n".join(alias_builder))
         return alias_strings
 
 
@@ -169,20 +180,28 @@ extension_registry: Dict[str, Registration] = {}
 
 def get_alias_registrations():
     """Get all registrations for extensions if they have are supposed to have a zsrhc alias."""
-    return {registration for registration in extension_registry.values() if registration.alias}
+    return {
+        registration
+        for registration in extension_registry.values()
+        if registration.alias
+    }
 
 
 def get_function_registrations():
     """Retrieve the functions in the registry."""
     return [
-        registration for registration in extension_registry.values() if registration.is_function
+        registration
+        for registration in extension_registry.values()
+        if registration.is_function
     ]
 
 
 def get_class_registrations():
     """Retrieve the classes in the registry."""
     return [
-        registration for registration in extension_registry.values() if not registration.is_function
+        registration
+        for registration in extension_registry.values()
+        if not registration.is_function
     ]
 
 
@@ -191,7 +210,9 @@ def get_registrations() -> Set[Registration]:
     return set(extension_registry.values())
 
 
-def get_extension_template_directory(ext: Union[Callable, Extension, Registration]) -> str:
+def get_extension_template_directory(
+    ext: Union[Callable, Extension, Registration]
+) -> str:
     """Retrieve the extension's template directory.
 
     Extension template directories are created with the name of extension as the template folder.
@@ -199,16 +220,20 @@ def get_extension_template_directory(ext: Union[Callable, Extension, Registratio
     if isinstance(ext, Registration):
         return os.path.join(
             pathlib.Path(inspect.getfile(ext.extension.handle)).parent.parent.resolve(),
-            'templates',
+            "templates",
             ext.extension.name,
         )
     elif isinstance(ext, Extension):
         return os.path.join(
-            pathlib.Path(inspect.getfile(inspect.getmodule(ext.handle))).parent.parent.resolve(),
-            'templates',
+            pathlib.Path(
+                inspect.getfile(inspect.getmodule(ext.handle))
+            ).parent.parent.resolve(),
+            "templates",
             ext.name,
         )
 
 
 def get_greatest_num_args_in_registrations():
-    return max(len(registration.extension.args) for registration in extension_registry.values())
+    return max(
+        len(registration.extension.args) for registration in extension_registry.values()
+    )

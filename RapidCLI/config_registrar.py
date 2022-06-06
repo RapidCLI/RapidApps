@@ -27,16 +27,16 @@ import traceback
 from difflib import get_close_matches
 from typing import Any, Callable, Dict, List, Union
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import (
+from rapidcli.utils import (
     CLIColors,
     change_to_snake_case,
     get_erroring_attr,
     get_path_from_repo_root,
     iterate_down_to,
 )
-from moveworks.utils.config.yaml_config import load_config_from_yaml_string
+from yaml import safe_load
 
-CONFIG_MODEL_SUFFIX = '_config'
+CONFIG_MODEL_SUFFIX = "_config"
 
 
 config_registry = {}
@@ -47,7 +47,7 @@ def register_config(cls=None, root=False):
 
     def wrapper(cls):
         if root:
-            config_registry['root'] = cls
+            config_registry["root"] = cls
         else:
             config_registry[cls.get_name()] = cls
         return cls
@@ -56,10 +56,10 @@ def register_config(cls=None, root=False):
 
 
 class Config:
-    CONFIG_SUFFIX = '_config'
+    CONFIG_SUFFIX = "_config"
 
     def __getattribute__(self, name) -> Any:
-        closest_match = ''
+        closest_match = ""
 
         try:
             return super().__getattribute__(name)
@@ -68,20 +68,23 @@ class Config:
             attr = get_erroring_attr(ae)
             try:
                 closest_match = next(
-                    match for match in get_close_matches(attr, vars(self).keys(), cutoff=0)
+                    match
+                    for match in get_close_matches(attr, vars(self).keys(), cutoff=0)
                 )
             except StopIteration:
                 print(
                     CLIColors.build_error_string(
-                        'Looks like the CLIconfig has no attributes.  Probably improperly loaded.'
+                        "Looks like the CLIconfig has no attributes.  Probably improperly loaded."
                     )
                 )
                 raise ae
 
-            if closest_match:  # probably will have some threshold based on 'edit distance'
+            if (
+                closest_match
+            ):  # probably will have some threshold based on 'edit distance'
                 ae.args = (
                     CLIColors.build_error_string(
-                        f'You tried to access {CLIColors.build_value_string(attr)}. Did you mean {CLIColors.build_value_string(closest_match)}?'
+                        f"You tried to access {CLIColors.build_value_string(attr)}. Did you mean {CLIColors.build_value_string(closest_match)}?"
                     ),
                 )
                 raise
@@ -178,7 +181,7 @@ class CLIConfig(Config):
     def get_extension_config(self, ext_name: str) -> Config:
         """Retreive this extensions config from the corresponding section in cli_config.yml."""
         # This is for when the config name is given fully
-        config = vars(self).get(f'{ext_name}')
+        config = vars(self).get(f"{ext_name}")
         if config:
             return config
 
@@ -197,20 +200,22 @@ class SearchResolver:
         try:
             if search_config.source_file in self.data_cache:
                 return self.data_cache[search_config.source_file]
-            data = self.data_loaders[search_config.data_loader](search_config.source_file)
+            data = self.data_loaders[search_config.data_loader](
+                search_config.source_file
+            )
             self.data_cache[search_config.source_file] = data
             return data
         except KeyError:
             traceback.print_exc()
-            value_string = CLIColors.build_value_string(f'{search_config.data_loader}')
+            value_string = CLIColors.build_value_string(f"{search_config.data_loader}")
             error_string = CLIColors.build_error_string(
-                f'There is no data loader method found named: {value_string}'
+                f"There is no data loader method found named: {value_string}"
             )
             available_values = CLIColors.build_value_string(
                 f"{', '.join(self.data_loaders.keys())}"
             )
             info_string = CLIColors.build_info_string(
-                f'The available values are: {available_values}'
+                f"The available values are: {available_values}"
             )
             print(error_string)
             print(info_string)
@@ -224,32 +229,36 @@ class SearchResolver:
         """Extract the value of a single search config."""
         try:
             source_data = self.load_data_to_search(search_config)
-            value = iterate_down_to(source_data, *search_config.variable_path.split('/'))
+            value = iterate_down_to(
+                source_data, *search_config.variable_path.split("/")
+            )
             search_config.value = self.extraction_methods[search_config.method](value)
             return search_config
         except KeyError:
             traceback.print_exc()
             if search_config.method not in self.extraction_methods:
-                value_string = CLIColors.build_value_string(f'{search_config.method}')
+                value_string = CLIColors.build_value_string(f"{search_config.method}")
                 error_string = CLIColors.build_error_string(
-                    f'Unable to extract data. Extraction method {value_string} does not exist'
+                    f"Unable to extract data. Extraction method {value_string} does not exist"
                 )
                 available_values = CLIColors.build_value_string(
                     f"{', '.join(self.extraction_methods.keys())}"
                 )
                 info_string = CLIColors.build_info_string(
-                    f'The available extraction methods are: {available_values}'
+                    f"The available extraction methods are: {available_values}"
                 )
                 print(error_string)
                 print(info_string)
                 sys.exit()
             value_name = CLIColors.build_value_string(search_config.value_name)
             msg = CLIColors.build_info_string(
-                f'Warning extraction of {value_name} failed, skipping to next search'
+                f"Warning extraction of {value_name} failed, skipping to next search"
             )
             print(msg)
 
-    def resolve_values(self, search_config_list: List[SearchConfig]) -> List[SearchConfig]:
+    def resolve_values(
+        self, search_config_list: List[SearchConfig]
+    ) -> List[SearchConfig]:
         """Extract all values in list of search configs."""
         for search_config in search_config_list:
             search_config = self.resolve_value(search_config)
@@ -257,25 +266,25 @@ class SearchResolver:
 
     def load_yaml_without_anchors(self, file_path) -> Dict:
         """Remove anchors in yaml string and read the yaml file data."""
-        file_path = get_path_from_repo_root(*file_path.split('/'))
-        with open(file_path, 'r') as file:
+        file_path = get_path_from_repo_root(*file_path.split("/"))
+        with open(file_path, "r") as file:
             text = []
             for line in file.readlines():
-                if '<<' in line:
+                if "<<" in line:
                     continue
                 text.append(line)
-            data = load_config_from_yaml_string('\n'.join(text))
+            data = safe_load("\n".join(text))
             return self.merge_env_aware_dict(data)
 
     def merge_env_aware_dict(self, data_dict):
-        if 'env_aware' not in data_dict:
+        if "env_aware" not in data_dict:
             return data_dict
 
-        data_dict = data_dict['vars']
-        if 'common' in data_dict:
-            prod_data = data_dict['common']
-            prod_data.update(data_dict['kprod'])
-            return {'vars': prod_data}
+        data_dict = data_dict["vars"]
+        if "common" in data_dict:
+            prod_data = data_dict["common"]
+            prod_data.update(data_dict["kprod"])
+            return {"vars": prod_data}
 
     def add_extraction_methods(self, *callable_args, **kwargs):
         """Add methods that should be available to be used in a search config extraction."""

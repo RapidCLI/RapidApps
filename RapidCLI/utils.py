@@ -16,7 +16,7 @@ from colorama import Back, Fore
 from google.protobuf.descriptor import Descriptor
 from jinja2 import BaseLoader, Environment, FileSystemLoader
 
-import moveworks.cse_tools.internal.scripts.extensible_cli_framework.settings as settings
+import rapidcli.settings as settings
 
 cache = {}
 
@@ -57,7 +57,11 @@ def run_subprocess_from_root(*args):
 
 def debug_print(msg):
     cal_name = inspect.stack()[1][3]
-    print('\n'.join([f'Called from function {CLIColors.build_value_string(cal_name)}', str(msg)]))
+    print(
+        "\n".join(
+            [f"Called from function {CLIColors.build_value_string(cal_name)}", str(msg)]
+        )
+    )
 
 
 def get_cli_path(cli: type):
@@ -65,7 +69,7 @@ def get_cli_path(cli: type):
 
 
 def get_cli_parent_path(cli: type):
-    return pathlib.Path(inspect.getfile(cli)).parent.resolve()
+    return str(pathlib.Path(inspect.getfile(cli)).parent.resolve())
 
 
 def get_absolute_file_paths(directory):
@@ -78,37 +82,37 @@ def get_absolute_file_paths(directory):
 def write_content(content: Any, dest_path: str, export_data_type: str = None):
     """Creates the directory of the last directory in filepath."""
     saved = False
-    if not settings.settings['debug']:
+    if not settings.settings["debug"]:
         dir_name = os.path.dirname(dest_path)
         if dir_name:
             safe_mkdir(dir_name)
         if isinstance(content, bytes):
-            with open(dest_path, 'wb') as fout:
+            with open(dest_path, "wb") as fout:
                 fout.write(content)
                 saved = True
         elif isinstance(content, str):
-            with open(dest_path, 'w') as fout:
+            with open(dest_path, "w") as fout:
                 fout.write(content)
                 saved = True
 
         elif isinstance(content, pd.DataFrame):
-            if export_data_type == 'json':
+            if export_data_type == "json":
                 content.to_json(dest_path, index=False)
                 saved = True
-            elif export_data_type == 'csv':
+            elif export_data_type == "csv":
                 content.to_csv(dest_path, index=False, quoting=csv.QUOTE_MINIMAL)
                 saved = True
-            elif export_data_type == 'xlsx':
+            elif export_data_type == "xlsx":
                 content.to_excel(dest_path, index=False)
                 saved = True
 
         elif isinstance(content, dict):
-            with open(dest_path, 'w') as file:
+            with open(dest_path, "w") as file:
                 json.dump(content, file, indent=2)
                 saved = True
 
         elif isinstance(content, list):
-            with open(dest_path, 'w') as file:
+            with open(dest_path, "w") as file:
                 json.dump(content, file, indent=2)
                 saved = True
 
@@ -116,7 +120,7 @@ def write_content(content: Any, dest_path: str, export_data_type: str = None):
         print_save_statement(dest_path)
 
 
-def load_yaml(filepath, encoding='utf-8'):
+def load_yaml(filepath, encoding="utf-8"):
     """Loads a yml file."""
     with open(filepath, encoding=encoding) as f:
         return yaml.safe_load(f)
@@ -137,23 +141,23 @@ def safe_mkdir(path):
 
 
 def read_file(path: str):
-    with open(path, 'r') as file:
+    with open(path, "r") as file:
         return file.read()
 
 
 def save_file(data: Any, path: str):
-    with open(path, 'w') as file:
+    with open(path, "w") as file:
         file.write(data)
 
 
 def save_json_data(data: dict, path: str):
-    with open(path, 'w') as file:
+    with open(path, "w") as file:
         json.dump(data, file, indent=4)
 
 
 def get_repo_root():
     """Gets the root of the repo by changing working directory."""
-    cache_key = 'get_repo_root'
+    cache_key = "get_repo_root"
 
     if cache.get(cache_key):
         return cache[cache_key]
@@ -163,16 +167,16 @@ def get_repo_root():
     # Temporarily change the dir to the repo where this file lives
     os.chdir(pathlib.Path(__file__).parent.resolve())
     with subprocess.Popen(
-        ['git', 'rev-parse', '--show-toplevel'],
+        ["git", "rev-parse", "--show-toplevel"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         stdin=subprocess.PIPE,
     ) as process:
-        repo_root = process.stdout.read().decode('UTF-8').replace('\n', '')
+        repo_root = process.stdout.read().decode("UTF-8").replace("\n", "")
         process.kill()
     # Change back to the working directory we were just at.
     os.chdir(current_working_dir)
-    cache['get_repo_root'] = repo_root
+    cache["get_repo_root"] = repo_root
 
     return repo_root
 
@@ -180,12 +184,12 @@ def get_repo_root():
 def get_local_login_username():
     """Gets the currently logged in username."""
     with subprocess.Popen(
-        ['whoami'],
+        ["whoami"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         stdin=subprocess.PIPE,
     ) as process:
-        user_name = process.stdout.read().decode('UTF-8').replace('\n', '')
+        user_name = process.stdout.read().decode("UTF-8").replace("\n", "")
         process.kill()
         return user_name
 
@@ -202,17 +206,17 @@ def change_to_snake_case(s: str):
     res = [s[0].lower()]
     for c in s[1:]:
         if c in string.ascii_uppercase:
-            res.append('_')
+            res.append("_")
             res.append(c.lower())
         else:
             res.append(c)
 
-    return ''.join(res)
+    return "".join(res)
 
 
 def is_snake_case(s: str):
     """Checks if the given string is snake case."""
-    if any(c in ['-'] for c in s):
+    if any(c in ["-"] for c in s):
         return False
     for c in s:
         if c.lower() != c:
@@ -243,7 +247,7 @@ def select_choice_from_proto(
             print(CLIColors.build_info_string(selection_message))
         for (i, item) in enumerate(choices):
             print(i + 1, CLIColors.build_value_string(item[0]))
-        input_data = input(f'Select [1-{len(choices)}]: ')  # nosec
+        input_data = input(f"Select [1-{len(choices)}]: ")  # nosec
         try:
             input_data = choices[int(input_data) - 1][0]
         except IndexError:
@@ -257,9 +261,9 @@ def select_choice_from_proto(
 
 
 def print_incorrect_selection_statement(selection: str):
-    start_error_message = CLIColors.build_error_string(f'Incorrect Selection Made: ')
-    colored_value = CLIColors.build_value_string(f'{selection}')
-    print(CLIColors.build_error_string(f'{start_error_message}{colored_value}'))
+    start_error_message = CLIColors.build_error_string(f"Incorrect Selection Made: ")
+    colored_value = CLIColors.build_value_string(f"{selection}")
+    print(CLIColors.build_error_string(f"{start_error_message}{colored_value}"))
 
 
 def get_enums_from_proto(
@@ -276,11 +280,12 @@ def get_enums_from_proto(
     """
     if not vals_to_remove:
         return [
-            (enum.name, enum.name.replace('_', ' ').lower()) for enum in enum_descriptor_sequence
+            (enum.name, enum.name.replace("_", " ").lower())
+            for enum in enum_descriptor_sequence
         ]
 
     return [
-        (enum.name, enum.name.replace('_', ' ').lower())
+        (enum.name, enum.name.replace("_", " ").lower())
         for enum in enum_descriptor_sequence
         if enum.name not in vals_to_remove
     ]
@@ -305,7 +310,7 @@ def iterate_down_to(data: Dict, *args, **kwargs):
                     find_recursively(value)
                     if field == args[-1]:
                         appended_item = value
-                        var_to_key = kwargs.get('var_to_key')
+                        var_to_key = kwargs.get("var_to_key")
                         if var_to_key and var_to_key in data:
                             appended_item = {data[var_to_key]: value}
                         data_found.append(appended_item)
@@ -326,15 +331,15 @@ def get_last_commit_of_file(file_path):
     """Retrieve the last commit of a file that was not made by the logged in user."""
     repo = git.Repo(get_repo_root(), odbt=git.GitCmdObjectDB)
     for commit in repo.iter_commits(paths=file_path, max_count=20):
-        if get_local_login_username() not in repo.git.show('-s', commit.hexsha):
+        if get_local_login_username() not in repo.git.show("-s", commit.hexsha):
             return commit
 
 
 def git_restore_file(filepath: str, source=None):
     """Restores the file to the last commit given as the source to return to."""
-    commands = ['git', 'restore']
+    commands = ["git", "restore"]
     if source:
-        commands.extend([f'--source={source}', filepath])
+        commands.extend([f"--source={source}", filepath])
     else:
         commands.append(filepath)
 
@@ -358,7 +363,7 @@ def get_export_path(ext_name, *args, create_dir_if_not_found: bool = True):
     It will not create "some_file.txt", the last variable is assumed to be the thing to save
     data to.
     """
-    path = os.path.join(os.path.expanduser('~/Desktop/exports'), ext_name, *args)
+    path = os.path.join(os.path.expanduser("~/Desktop/exports"), ext_name, *args)
     if create_dir_if_not_found:
         create_export_path(path)
     return path
@@ -369,26 +374,28 @@ def create_export_path(export_path: str):
     export_dir = os.path.dirname(export_path)
     colored_location = CLIColors.build_location_string(export_dir)
     if not os.path.isdir(export_path) and not os.path.exists(export_dir):
-        safe_mkdir(export_dir + '/')
-        colored_info_string = CLIColors.build_info_string('Created export directory')
-        print(f'{colored_info_string}: {colored_location}')
+        safe_mkdir(export_dir + "/")
+        colored_info_string = CLIColors.build_info_string("Created export directory")
+        print(f"{colored_info_string}: {colored_location}")
 
 
 def print_save_statement(saved_file_path: str, unfollowable=False):
     """Prints the standard CSE CLI saving statme with the location color."""
-    save_msg = 'Saving Complete. Location:'
+    save_msg = "Saving Complete. Location:"
     if unfollowable:
-        save_msg = 'Saving Complete. Unfollowable location:'
+        save_msg = "Saving Complete. Unfollowable location:"
 
     print(
         CLIColors.build_info_string(
-            f'{save_msg} {CLIColors.build_location_string(saved_file_path, unfollowable)}'
+            f"{save_msg} {CLIColors.build_location_string(saved_file_path, unfollowable)}"
         )
     )
 
 
 # TODO(bgarrard): Move this to the extension class
-def render_template(render_args: dict, template_path: str, extension_root_template_dir: str):
+def render_template(
+    render_args: dict, template_path: str, extension_root_template_dir: str
+):
     """Retrieve the rendered Jinja template using the given render arguments."""
     templateLoader = FileSystemLoader(extension_root_template_dir)
     env = Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)
@@ -397,7 +404,7 @@ def render_template(render_args: dict, template_path: str, extension_root_templa
         env.filters[filter_key] = jinja_filter
 
     template = env.get_template(template_path)
-    return f'{template.render(**render_args)}\n'
+    return f"{template.render(**render_args)}\n"
 
 
 def render_string(string_to_render: str, render_args: Dict):
@@ -425,19 +432,21 @@ def get_path_from_repo_root(*args):
 
         This produces "{repo_root}/first_dir/second_dir"
     """
-    return os.path.join(os.sep, *get_repo_root().split('/'), *args)
+    return os.path.join(os.sep, *get_repo_root().split("/"), *args)
 
 
 def backup_file(file_path):
     """This will back the given file in your /tmp folder."""
     if os.path.exists(file_path):
         file_name = os.path.basename(file_path)
-        new_file_name = f'{os.path.splitext(file_name)[0]}.bak'
-        temp_path = os.path.join(os.sep, 'tmp', f'{get_todays_date_string()}_{new_file_name}')
-        info_message = CLIColors.build_info_string(f'Backing up file:')
+        new_file_name = f"{os.path.splitext(file_name)[0]}.bak"
+        temp_path = os.path.join(
+            os.sep, "tmp", f"{get_todays_date_string()}_{new_file_name}"
+        )
+        info_message = CLIColors.build_info_string(f"Backing up file:")
         colored_file_path = CLIColors.build_location_string(file_path)
         colored_temp_path = CLIColors.build_location_string(temp_path)
-        colored_message = f'{info_message} {colored_file_path} to {colored_temp_path}'
+        colored_message = f"{info_message} {colored_file_path} to {colored_temp_path}"
         print(colored_message)
 
         os.rename(file_path, temp_path)
@@ -447,18 +456,24 @@ def provide_argument_help_string(given_arg: str, valid_args: List[str]) -> str:
     colored_value = CLIColors.build_value_string(given_arg)
     colored_valid_args = [CLIColors.build_value_string(arg) for arg in valid_args]
     messsage_builder = [
-        CLIColors.build_error_string(f'The provided value is not valid: {colored_value}')
+        CLIColors.build_error_string(
+            f"The provided value is not valid: {colored_value}"
+        )
     ]
-    messsage_builder.append(CLIColors.build_info_string('A list of valid arguements is below'))
-    messsage_builder.append('\n'.join(colored_valid_args))
-    return '\n'.join(messsage_builder)
+    messsage_builder.append(
+        CLIColors.build_info_string("A list of valid arguements is below")
+    )
+    messsage_builder.append("\n".join(colored_valid_args))
+    return "\n".join(messsage_builder)
 
 
 def get_todays_date_string():
-    return datetime.today().strftime('%Y-%m-%d')
+    return datetime.today().strftime("%Y-%m-%d")
 
 
-def transform_dict_list_to_dataframe(data_list: List[Dict], transform_map: Dict[str, List]):
+def transform_dict_list_to_dataframe(
+    data_list: List[Dict], transform_map: Dict[str, List]
+):
     """This is a function that helps transforms nested dicts in to a dataframe more easily.
 
     Give a list of dictionaries that are of the same structure, we can define a map to retrieve
@@ -493,46 +508,46 @@ def transform_dict_list_to_dataframe(data_list: List[Dict], transform_map: Dict[
 
 def is_plural(string: str):
     """Check if a string is plural or not."""
-    if string[-3:] == 'ies':
+    if string[-3:] == "ies":
         return True
-    return string[-1] == 's'
+    return string[-1] == "s"
 
 
 def make_singular(string: str):
     """Returns a non plural version of given string."""
-    if string[-3:] == 'ies':
-        return f'{string[:-3]}y'
-    elif string[-2:] == 'es' and string[-4:-2] == 'ch':
-        return f'{string[:-2]}'
+    if string[-3:] == "ies":
+        return f"{string[:-3]}y"
+    elif string[-2:] == "es" and string[-4:-2] == "ch":
+        return f"{string[:-2]}"
     return string[:-1]
 
 
 class CLIColors:
     """These are colors for the CLI framework itself."""
 
-    INFO = 'info'
-    ERROR = 'error'
-    LOCATION = 'location'
-    VALUE = 'value'
-    NEUTRAL = 'neutral'
-    DOCSTRING = 'doc'
+    INFO = "info"
+    ERROR = "error"
+    LOCATION = "location"
+    VALUE = "value"
+    NEUTRAL = "neutral"
+    DOCSTRING = "doc"
 
     @staticmethod
     def sanitize(string: str, color: str):
         if not string:
-            return ''
+            return ""
         else:
             return str(string).replace(Fore.RESET, color)
 
     @staticmethod
     def build_info_string(string: str):
         string = CLIColors.sanitize(string, Fore.GREEN)
-        return f'{Fore.GREEN}{string}{Fore.RESET}'
+        return f"{Fore.GREEN}{string}{Fore.RESET}"
 
     @staticmethod
     def build_error_string(string: str):
         string = CLIColors.sanitize(string, Fore.RED)
-        return f'{Fore.RED}{string}{Fore.RESET}'
+        return f"{Fore.RED}{string}{Fore.RESET}"
 
     @staticmethod
     def build_location_string(string: str, unfollowable: bool = False):
@@ -540,30 +555,30 @@ class CLIColors:
             return CLIColors._build_unfollowable_location_string(string)
 
         string = CLIColors.sanitize(string, Fore.YELLOW)
-        return f'{Fore.YELLOW}{string}{Fore.RESET}'
+        return f"{Fore.YELLOW}{string}{Fore.RESET}"
 
     @staticmethod
     def build_value_string(string: str):
         string = CLIColors.sanitize(string, Fore.CYAN)
-        return f'{Fore.CYAN}{string}{Fore.RESET}'
+        return f"{Fore.CYAN}{string}{Fore.RESET}"
 
     @staticmethod
     def build_neutral_string(string: str):
         string = CLIColors.sanitize(string, Fore.LIGHTGREEN_EX)
-        return f'{Fore.LIGHTGREEN_EX}{string}{Fore.RESET}'
+        return f"{Fore.LIGHTGREEN_EX}{string}{Fore.RESET}"
 
     @staticmethod
     def build_doc_string(string: str):
         string = CLIColors.sanitize(string, Fore.MAGENTA)
-        return f'{Fore.MAGENTA}{string}{Fore.RESET}'
+        return f"{Fore.MAGENTA}{string}{Fore.RESET}"
 
     @classmethod
     def color_strings(cls, text_type: str, *args):
-        return list(map(getattr(cls, f'build_{text_type}_string'), args))
+        return list(map(getattr(cls, f"build_{text_type}_string"), args))
 
     @staticmethod
     def _build_unfollowable_location_string(string: str):
         string = CLIColors.sanitize(string, Fore.LIGHTYELLOW_EX)
-        string = f'{Fore.LIGHTYELLOW_EX}{string}{Fore.RESET}'
-        string = f'{Back.BLACK}{string}{Back.RESET}'
+        string = f"{Fore.LIGHTYELLOW_EX}{string}{Fore.RESET}"
+        string = f"{Back.BLACK}{string}{Back.RESET}"
         return string

@@ -6,15 +6,15 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 
 from tqdm import tqdm
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework import utils
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.app_loader import (
+import rapidcli.utils
+from rapidcli.app_loader import (
     render_config_args,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.config_registrar import (
+from rapidcli.config_registrar import (
     CLIConfig,
     Config,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import change_to_snake_case
+from rapidcli.utils import change_to_snake_case, CLIColors, render_template
 
 
 class Extension:
@@ -42,7 +42,7 @@ class Extension:
         obj_to_inspect = self.handle if self.is_function else self.handle.__class__
         members = inspect.getmembers(obj_to_inspect)
         for attr, value in members:
-            if attr == '__name__':
+            if attr == "__name__":
                 return change_to_snake_case(value)
 
     # TODO(bgarrard):  Find a way to have extension entry point with varying arguments
@@ -53,7 +53,7 @@ class Extension:
             return self.run_function(*args, **kwargs)
 
         raise NotImplementedError(
-            f'The extension ({utils.CLIColors.build_value_string(self.get_name())}), has not implemented the main method'
+            f"The extension ({CLIColors.build_value_string(self.get_name())}), has not implemented the main method"
         )
 
     def run_extension(self, *args, **kwargs):
@@ -85,19 +85,23 @@ class Extension:
 
         # Gather Config Inputs
         if not self.has_menu_header_been_displayed:
-            print(utils.CLIColors.build_info_string(f"Welcome to {self.get_name()}'s menu!\n"))
+            print(
+                CLIColors.build_info_string(f"Welcome to {self.get_name()}'s menu!\n")
+            )
             self.has_menu_header_been_displayed = True
 
         for config_attr, input_menu_value in extension_input_menu.items():
-            if config_attr is 'input_menu':
+            if config_attr == "input_menu":
                 continue
             user_input = None
             try:
-                question = input_menu_value['question']
-                colored_message = utils.CLIColors.build_info_string(f'{question}')
-                if 'choices' in input_menu_value:
+                question = input_menu_value["question"]
+                colored_message = CLIColors.build_info_string(f"{question}")
+                if "choices" in input_menu_value:
                     user_input = self.get_user_input_from_choices(
-                        input_menu_value['choices'], choice_descriptions, colored_message
+                        input_menu_value["choices"],
+                        choice_descriptions,
+                        colored_message,
                     )
                 else:
                     user_input = input(colored_message)
@@ -110,7 +114,7 @@ class Extension:
                     self.config.set_var(config_attr, user_input)
             except IndexError:
                 raise IndexError(
-                    f'The keys for the input map of this extension are not correct. Review the schema.'
+                    f"The keys for the input map of this extension are not correct. Review the schema."
                 )
 
     def show_confirmation_menu(self):
@@ -118,19 +122,23 @@ class Extension:
         result = None
         # confirmation menu
         print(
-            utils.CLIColors.build_info_string(
-                'Confirm the Following Settings for the following inputs.'
+            CLIColors.build_info_string(
+                "Confirm the Following Settings for the following inputs."
             )
         )
-        while result not in ['y', 'yes']:
+        while result not in ["y", "yes"]:
             for config_attr in self.config.confirmation_menu.attrs:
                 ext_config_attr_val = self.config.get_var(config_attr)
-                print(f'{config_attr}: {utils.CLIColors.build_value_string(ext_config_attr_val)}')
+                print(
+                    f"{config_attr}: {CLIColors.build_value_string(ext_config_attr_val)}"
+                )
             if result is not None:
-                print("it seems you made an invalid selection before.  Please type 'y' or 'n'")
-            result = input('Continue? y/n\n')  # nosec
-            if result in ['n', 'no']:
-                print('exiting setup')
+                print(
+                    "it seems you made an invalid selection before.  Please type 'y' or 'n'"
+                )
+            result = input("Continue? y/n\n")  # nosec
+            if result in ["n", "no"]:
+                print("exiting setup")
                 sys.exit()
 
     def get_extension_args(self):
@@ -169,10 +177,10 @@ class Extension:
 
         rendered_file_names_and_text = []
         for subdir, _, files in os.walk(template_directory):
-            for f in tqdm(files, desc='Rendering Extension Templates via Jinja'):
+            for f in tqdm(files, desc="Rendering Extension Templates via Jinja"):
 
                 template_file_path = os.path.join(subdir, f).split(ext_name)[1]
-                rendered_text = utils.render_template(
+                rendered_text = render_template(
                     render_args, template_file_path, template_directory
                 )
 
@@ -193,28 +201,30 @@ class Extension:
 
         return choice
 
-    def display_choices(self, choices: List[str], choice_descriptions: Dict[str, str] = None):
+    def display_choices(
+        self, choices: List[str], choice_descriptions: Dict[str, str] = None
+    ):
         for idx, choice in enumerate(choices):
             if choice_descriptions and choice in choice_descriptions:
                 print(
-                    f'{idx+1}. {utils.CLIColors.build_value_string(choice)} {utils.CLIColors.build_info_string(choice_descriptions[choice])}'
+                    f"{idx+1}. {CLIColors.build_value_string(choice)} {CLIColors.build_info_string(choice_descriptions[choice])}"
                 )
             else:
-                print(f'{idx+1}. {utils.CLIColors.build_value_string(choice)}')
+                print(f"{idx+1}. {CLIColors.build_value_string(choice)}")
 
     def get_user_choice(self, choices: List[str]):
-        choice = input(f'Please select your choice [1-{len(choices)}]:')
+        choice = input(f"Please select your choice [1-{len(choices)}]:")
 
         try:
             index = int(choice) - 1
             return choices[index]
         except ValueError:
             print(
-                f'Value supplied, {utils.CLIColors.build_value_string(choice)}, is not an integer, try again.'
+                f"Value supplied, {CLIColors.build_value_string(choice)}, is not an integer, try again."
             )
         except IndexError:
             print(
-                f'Value supplied, {utils.CLIColors.build_value_string(choice)}, is not a selection, try again.'
+                f"Value supplied, {CLIColors.build_value_string(choice)}, is not a selection, try again."
             )
 
     def get_extension_template_directory(self) -> str:
@@ -223,9 +233,11 @@ class Extension:
         Extension template directories are created with the name of extension as the template folder.
         """
         return os.path.join(
-            pathlib.Path(inspect.getfile(inspect.getmodule(self.handle))).parent.parent.resolve(),
+            pathlib.Path(
+                inspect.getfile(inspect.getmodule(self.handle))
+            ).parent.parent.resolve(),
             self.name,
-            'templates',
+            "templates",
         )
 
     # Application Lifecycle hook
@@ -240,4 +252,4 @@ class Extension:
 
     def render_config_args(self):
         """Calls on the config to render {{}} in jinja using the key/values found in config itself."""
-        setattr(self, 'config', render_config_args(self.config))
+        setattr(self, "config", render_config_args(self.config))
