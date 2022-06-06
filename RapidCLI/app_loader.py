@@ -5,13 +5,13 @@ import os
 import traceback
 from typing import Any, Dict
 
-import moveworks.cse_tools.internal.scripts.extensible_cli_framework.settings as settings
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.config_registrar import (
+import rapidcli.settings as settings
+from rapidcli.config_registrar import (
     CLIConfig,
     Config,
     config_registry,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import (
+from rapidcli.utils import (
     CLIColors,
     get_cli_parent_path,
     is_plural,
@@ -20,17 +20,33 @@ from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import 
     render_string,
     write_content,
 )
+from rapidcli.rapid_admin import rapid_admin #lets just import the admin CLI for now.  We can update it later.
+
+def load_framework_cli(cli: type):
+    cli_config_data = retrieve_cli_config_data(cli)
+    admin_cli_path = get_cli_parent_path(cli)
+    admin_project_path = ['rapidcli'] + [path for path in admin_cli_path.split('rapidcli')[1].split(os.sep) if path]
+    for app in cli_config_data['apps']:
+        app_path = os.path.join(admin_cli_path, app)
+        modules = get_app_modules(app_path)
+        for module in modules:
+            pyless_module = module.split('.')[0]
+            importlib.import_module('.'.join(admin_project_path + [app, pyless_module]))
 
 
 def load_cli_settings(cli: type):
     """Loads the settings for the given CLI."""
     mod = inspect.getmodule(cli)
     mod.settings = retrieve_cli_config_data(cli)
-    settings.settings = mod.settings
+    settings.settings.update(mod.settings)
 
 
 def load_apps_in_cli(cli: type):
     """Load the apps for a given CLI."""
+    if cli == rapid_admin.RapidAdmin:
+        load_framework_cli(cli)
+        return
+
     cli_config_data = retrieve_cli_config_data(cli)
     _load_apps(cli_config_data, get_cli_parent_path(cli))
 

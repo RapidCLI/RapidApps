@@ -2,22 +2,22 @@ import os
 import pathlib
 import unittest
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.app_loader import (
+from rapidcli.app_loader import (
     create_cli_config_from_cli_from_data,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.config_registrar import (
+from rapidcli.config_registrar import (
     CLIConfig,
     InputMenuConfig,
     SearchConfig,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.extension import Extension
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.tests.cli_test_configs import (
+from rapidcli.extension import Extension
+from rapidcli.tests.cli_test_configs import (
     NestedObjInExtensionConfig,
     NestedObjInListConfig,
     TableConfig,
     TestExtensionConfig,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import load_yaml
+from rapidcli.utils import load_yaml
 
 
 class TestUtils(unittest.TestCase):

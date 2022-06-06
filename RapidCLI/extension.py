@@ -6,15 +6,15 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 
 from tqdm import tqdm
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework import utils
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.app_loader import (
+import rapidcli.utils
+from rapidcli.app_loader import (
     render_config_args,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.config_registrar import (
+from rapidcli.config_registrar import (
     CLIConfig,
     Config,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import change_to_snake_case
+from rapidcli.utils import change_to_snake_case, CLIColors, render_template
 
 
 class Extension:
@@ -53,7 +53,7 @@ class Extension:
             return self.run_function(*args, **kwargs)
 
         raise NotImplementedError(
-            f'The extension ({utils.CLIColors.build_value_string(self.get_name())}), has not implemented the main method'
+            f'The extension ({CLIColors.build_value_string(self.get_name())}), has not implemented the main method'
         )
 
     def run_extension(self, *args, **kwargs):
@@ -85,16 +85,16 @@ class Extension:
 
         # Gather Config Inputs
         if not self.has_menu_header_been_displayed:
-            print(utils.CLIColors.build_info_string(f"Welcome to {self.get_name()}'s menu!\n"))
+            print(CLIColors.build_info_string(f"Welcome to {self.get_name()}'s menu!\n"))
             self.has_menu_header_been_displayed = True
 
         for config_attr, input_menu_value in extension_input_menu.items():
-            if config_attr is 'input_menu':
+            if config_attr == 'input_menu':
                 continue
             user_input = None
             try:
                 question = input_menu_value['question']
-                colored_message = utils.CLIColors.build_info_string(f'{question}')
+                colored_message = CLIColors.build_info_string(f'{question}')
                 if 'choices' in input_menu_value:
                     user_input = self.get_user_input_from_choices(
                         input_menu_value['choices'], choice_descriptions, colored_message
@@ -118,14 +118,14 @@ class Extension:
         result = None
         # confirmation menu
         print(
-            utils.CLIColors.build_info_string(
+            CLIColors.build_info_string(
                 'Confirm the Following Settings for the following inputs.'
             )
         )
         while result not in ['y', 'yes']:
             for config_attr in self.config.confirmation_menu.attrs:
                 ext_config_attr_val = self.config.get_var(config_attr)
-                print(f'{config_attr}: {utils.CLIColors.build_value_string(ext_config_attr_val)}')
+                print(f'{config_attr}: {CLIColors.build_value_string(ext_config_attr_val)}')
             if result is not None:
                 print("it seems you made an invalid selection before.  Please type 'y' or 'n'")
             result = input('Continue? y/n\n')  # nosec
@@ -172,7 +172,7 @@ class Extension:
             for f in tqdm(files, desc='Rendering Extension Templates via Jinja'):
 
                 template_file_path = os.path.join(subdir, f).split(ext_name)[1]
-                rendered_text = utils.render_template(
+                rendered_text = render_template(
                     render_args, template_file_path, template_directory
                 )
 
@@ -197,10 +197,10 @@ class Extension:
         for idx, choice in enumerate(choices):
             if choice_descriptions and choice in choice_descriptions:
                 print(
-                    f'{idx+1}. {utils.CLIColors.build_value_string(choice)} {utils.CLIColors.build_info_string(choice_descriptions[choice])}'
+                    f'{idx+1}. {CLIColors.build_value_string(choice)} {CLIColors.build_info_string(choice_descriptions[choice])}'
                 )
             else:
-                print(f'{idx+1}. {utils.CLIColors.build_value_string(choice)}')
+                print(f'{idx+1}. {CLIColors.build_value_string(choice)}')
 
     def get_user_choice(self, choices: List[str]):
         choice = input(f'Please select your choice [1-{len(choices)}]:')
@@ -210,11 +210,11 @@ class Extension:
             return choices[index]
         except ValueError:
             print(
-                f'Value supplied, {utils.CLIColors.build_value_string(choice)}, is not an integer, try again.'
+                f'Value supplied, {CLIColors.build_value_string(choice)}, is not an integer, try again.'
             )
         except IndexError:
             print(
-                f'Value supplied, {utils.CLIColors.build_value_string(choice)}, is not a selection, try again.'
+                f'Value supplied, {CLIColors.build_value_string(choice)}, is not a selection, try again.'
             )
 
     def get_extension_template_directory(self) -> str:

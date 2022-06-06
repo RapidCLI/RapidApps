@@ -3,10 +3,10 @@ import shutil
 import unittest
 from unittest.mock import patch
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework import utils
-from moveworks.protos.channel.chat_channels_pb2 import ChannelGroup
-from moveworks.protos.itsm.itsm_systems_pb2 import ITSMSystem
-from moveworks.protos.security_factors.authn_system_enums_pb2 import AuthnSystemProviderEnum
+from rapidcli import utils
+from rapidcli.protos.channel.chat_channels_pb2 import ChannelGroup
+from rapidcli.protos.itsm.itsm_systems_pb2 import ITSMSystem
+from rapidcli.protos.security_factors.authn_system_enums_pb2 import AuthnSystemProviderEnum
 
 
 class TestUtils(unittest.TestCase):

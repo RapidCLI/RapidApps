@@ -16,7 +16,7 @@ from colorama import Back, Fore
 from google.protobuf.descriptor import Descriptor
 from jinja2 import BaseLoader, Environment, FileSystemLoader
 
-import moveworks.cse_tools.internal.scripts.extensible_cli_framework.settings as settings
+import rapidcli.settings as settings
 
 cache = {}
 
@@ -65,7 +65,7 @@ def get_cli_path(cli: type):
 
 
 def get_cli_parent_path(cli: type):
-    return pathlib.Path(inspect.getfile(cli)).parent.resolve()
+    return str(pathlib.Path(inspect.getfile(cli)).parent.resolve())
 
 
 def get_absolute_file_paths(directory):

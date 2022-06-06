@@ -1,0 +1,7 @@
+rapid_admin:
+  main_menu:
+    input_menu: 
+      what_to_create:
+        question: "What are you wanting to create?"
+        choices: 
+          - "cli"

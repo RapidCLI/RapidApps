@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "rapidcli"
+version = "0.1.4"
+description = "A rapid CLI framework meant for developers who need complex solutions with minimal work."
+authors = ["benjamin garrard <benjamingarrard5279@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+GitPython = "^3.1.27"
+tqdm = "^4.64.0"
+pandas = "^1.4.2"
+PyYAML = "^6.0"
+protobuf = "^4.21.1"
+Jinja2 = "^3.1.2"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+packages = [
+    { include = "src" }
+]
+
+[tool.poetry.scripts]
+rapidcli = "rapidcli.rapid_admin.rapid_admin:main"

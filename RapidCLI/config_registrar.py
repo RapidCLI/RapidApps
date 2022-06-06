@@ -27,14 +27,14 @@ import traceback
 from difflib import get_close_matches
 from typing import Any, Callable, Dict, List, Union
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import (
+from rapidcli.utils import (
     CLIColors,
     change_to_snake_case,
     get_erroring_attr,
     get_path_from_repo_root,
     iterate_down_to,
 )
-from moveworks.utils.config.yaml_config import load_config_from_yaml_string
+from yaml import safe_load
 
 CONFIG_MODEL_SUFFIX = '_config'
 
@@ -264,7 +264,7 @@ class SearchResolver:
                 if '<<' in line:
                     continue
                 text.append(line)
-            data = load_config_from_yaml_string('\n'.join(text))
+            data = safe_load('\n'.join(text))
             return self.merge_env_aware_dict(data)
 
     def merge_env_aware_dict(self, data_dict):

@@ -13,8 +13,8 @@ import os
 import pathlib
 from typing import Any, Callable, Dict, Set, Union
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.extension import Extension
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import (
+from rapidcli.extension import Extension
+from rapidcli.utils import (
     CLIColors,
     get_repo_root,
 )
@@ -120,7 +120,7 @@ class Registration:
 
     def get_alias_strings(self):
         """Convert python functions registered as aliases to bash alias string."""
-        CLI_FROM_ROOT_PATH = 'moveworks/cse_tools/internal/scripts/cse_cli/cse_cli.py'
+        CLI_FROM_ROOT_PATH = 'replaceme'
         alias_strings = []
         for alias in self.get_aliases():
             alias_builder = [f'function {alias}() {{']

@@ -1,6 +1,6 @@
 from typing import List
 
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.config_registrar import (
+from rapidcli.config_registrar import (
     Config,
     InputMenuConfig,
     register_config,

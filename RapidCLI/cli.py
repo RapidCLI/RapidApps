@@ -4,17 +4,16 @@ import sys
 
 from colorama import init
 
-import moveworks.cse_tools.internal.scripts.extensible_cli_framework.settings as settings
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.app_loader import (
+import rapidcli.settings as settings
+from rapidcli.app_loader import (
     create_cli_config_from_cli,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.extension_registrar import (
+from rapidcli.extension_registrar import (
     get_class_registrations,
     get_function_registrations,
     get_registrations,
 )
-from moveworks.cse_tools.internal.scripts.extensible_cli_framework.utils import CLIColors
-
+from rapidcli.utils import CLIColors
 
 class CLIHelpFormatter(argparse.RawTextHelpFormatter):
     def __init__(self, *args, **kwargs) -> None:
